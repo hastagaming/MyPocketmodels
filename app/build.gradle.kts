@@ -23,6 +23,7 @@ android {
         // Memaksa Java 17
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        kotlinCompilerExtensionVersion = "1.5.8"
     }
 
     kotlinOptions {
