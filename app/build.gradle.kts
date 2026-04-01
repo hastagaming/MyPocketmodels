@@ -18,9 +18,10 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
-    compile0ptions {
+    compileOptions {
         kotlinCompilerExtensionVersion = "1.5.8"
     }
 
