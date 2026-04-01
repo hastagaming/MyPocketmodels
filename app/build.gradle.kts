@@ -19,8 +19,20 @@ android {
     buildFeatures {
         compose = true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+    compileOptions {
+        // Memaksa Java 17
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        // Memaksa Kotlin menggunakan JVM 17
+        jvmTarget = "17"
+    }
+
+    // Tambahkan ini di dalam blok android { ... } agar lebih aman
+    kotlin {
+        jvmToolchain(17)
     }
 }
 
