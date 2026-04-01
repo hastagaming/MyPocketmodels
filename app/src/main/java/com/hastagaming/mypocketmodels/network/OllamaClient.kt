@@ -3,7 +3,7 @@ package com.hastagaming.mypocketmodels.network
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory // Pastikan pakai titik (.) di sini
 import retrofit2.http.Body
-import retrofit2.http.Post
+import retrofit2.http.POST
 
 // Format permintaan ke Ollama
 data class OllamaRequest(
@@ -18,7 +18,7 @@ data class OllamaResponse(
 )
 
 interface OllamaApi {
-    @Post("api/generate")
+    @POST("api/generate")
     suspend fun generateResponse(@Body request: OllamaRequest): OllamaResponse
 }
 
