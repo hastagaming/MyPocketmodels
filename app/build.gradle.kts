@@ -1,10 +1,10 @@
-import java.util.Properties // <--- TAMBAHKAN INI DI PALING ATAS
-import java.io.FileInputStream
+import java.util.Properties
+import java.io.File
 
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("com.google.devtools.ksp") 
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -18,18 +18,20 @@ android {
         versionCode = 1
         versionName = "1.0.0"
 
-        // --- LOGIKA TOKEN RAHASIA (JANGAN DIHAPUS) ---
-        val hfToken = project.rootProject.file("local.properties").let { file ->
-            if (file.exists()) {
-                val properties = java.util.Properties()
-                properties.load(file.inputStream())
-                properties.getProperty("HF_TOKEN") ?: ""
-            } else {
-                System.getenv("HF_TOKEN") ?: ""
-            }
+        // --- LOGIKA TOKEN RAHASIA ---
+        // Kita gunakan cara yang lebih eksplisit agar Gradle tidak bingung
+        val localPropsFile = project.rootProject.file("local.properties")
+        val properties = Properties()
+        
+        val hfToken = if (localPropsFile.exists()) {
+            localPropsFile.inputStream().use { properties.load(it) }
+            properties.getProperty("HF_TOKEN") ?: ""
+        } else {
+            System.getenv("HF_TOKEN") ?: ""
         }
+        
         buildConfigField("String", "HF_TOKEN", "\"$hfToken\"")
-        // ---------------------------------------------
+        // ----------------------------
     }
 
     buildFeatures {
@@ -37,7 +39,6 @@ android {
         buildConfig = true
     }
 
-    // PERBAIKAN: Harus di dalam composeOptions, bukan compileOptions
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.8"
     }
@@ -57,7 +58,7 @@ android {
 }
 
 dependencies {
-    // UI (Compose) - Disarankan pakai BOM agar versi seragam
+    // UI (Compose)
     val composeBom = platform("androidx.compose:compose-bom:2024.02.01")
     implementation(composeBom)
     implementation("androidx.compose.ui:ui")
