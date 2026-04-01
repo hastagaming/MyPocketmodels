@@ -1,0 +1,30 @@
+========================================
+       PROJECT: MYPOCKETMODELS
+========================================
+
+App Name      : MyPocketModels
+Version       : 1.0.0-Beta
+Status        : Development (Active)
+Developer     : Nasa (hastagaming)
+Base Location : Kediri, Indonesia
+License       : MIT License
+
+DESCRIPTION:
+MyPocketModels adalah aplikasi asisten AI 
+untuk Android yang mengintegrasikan model 
+bahasa (LLM) melalui dua jalur:
+1. Ollama (Local/Remote Server)
+2. Hugging Face Inference API
+
+TECH STACK:
+- Language: Kotlin
+- UI Framework: Jetpack Compose
+- Database: Room (SQLite)
+- Network: Retrofit & OkHttp
+- CI/CD: GitHub Actions
+
+REPOSITORY:
+https://github.com/hastagaming/MyPocketModels
+
+Copyright (c) 2026 Nasa. All Rights Reserved.
+========================================
