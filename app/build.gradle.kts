@@ -1,3 +1,6 @@
+import java.util.Properties // <--- TAMBAHKAN INI DI PALING ATAS
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
