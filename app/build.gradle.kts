@@ -1,5 +1,5 @@
 import java.util.Properties
-import java.io.File
+import java.io.FileInputStream
 
 plugins {
     id("com.android.application")
@@ -18,20 +18,45 @@ android {
         versionCode = 1
         versionName = "1.0.0"
 
-        // --- LOGIKA TOKEN RAHASIA ---
-        // Kita gunakan cara yang lebih eksplisit agar Gradle tidak bingung
+        // --- LOGIKA TOKEN RAHASIA (HF_TOKEN) ---
         val localPropsFile = project.rootProject.file("local.properties")
         val properties = Properties()
-        
+
         val hfToken = if (localPropsFile.exists()) {
             localPropsFile.inputStream().use { properties.load(it) }
-            properties.getProperty("HF_TOKEN") ?: ""
+            properties.getProperty("HF_TOKEN") ?: System.getenv("HF_TOKEN") ?: ""
         } else {
             System.getenv("HF_TOKEN") ?: ""
         }
-        
+
         buildConfigField("String", "HF_TOKEN", "\"$hfToken\"")
-        // ----------------------------
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    // --- KONFIGURASI TANDA TANGAN (SIGNING) ---
+    signingConfigs {
+        create("Mymodels") {
+            // Mengambil dari Environment Variables (GitHub Secrets)
+            storeFile = file("Mymodels.jks")
+            storePassword = System.getenv("SIGNING_STORE_PASSWORD")
+            keyAlias = System.getenv("SIGNING_KEY_ALIAS")
+            keyPassword = System.getenv("SIGNING_KEY_PASSWORD")
+        }
+    }
+
+    buildTypes {
+        getByName("debug") {
+            isMinifyEnabled = false
+        }
+        getByName("release") {
+            isMinifyEnabled = false // Set ke true jika ingin diproteksi (R8)
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            // Menghubungkan ke konfigurasi Mymodels
+            signingConfig = signingConfigs.getByName("Mymodels")
+        }
     }
 
     buildFeatures {
@@ -64,6 +89,11 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.activity:activity-compose:1.8.2")
+
+    // Lifecycle & ViewModel
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
 
     // Memory (Room Database)
     val roomVersion = "2.6.1"
@@ -74,9 +104,4 @@ dependencies {
     // Networking
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    
-    // TAMBAHKAN 3 BARIS INI: Library untuk Activity, ViewModel, dan Lifecycle
-    implementation("androidx.activity:activity-compose:1.8.2")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
 }

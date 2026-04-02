@@ -1,10 +1,15 @@
-name: Android CI
+name: Mymodels CI/CD Pipeline
 
 on:
   push:
     branches: [ "main" ]
+    tags:
+      - 'v*' # Memicu proses Release jika ada tag versi
   pull_request:
     branches: [ "main" ]
+
+permissions:
+  contents: write # Izin wajib untuk membuat rilis di GitHub
 
 jobs:
   build:
@@ -21,9 +26,7 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
-    # --- BAGIAN RAHASIA NASA ---
-    # Mengambil token dari GitHub Secrets dan menyuntikkannya ke file local.properties
-    # agar BuildConfig bisa membacanya tanpa membocorkan token ke publik.
+    # --- BAGIAN RAHASIA NASA: Injeksi Token ---
     - name: Inject HF_TOKEN to local.properties
       run: |
         echo "HF_TOKEN=${{ secrets.HF_TOKEN }}" > local.properties
@@ -32,12 +35,41 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
+    # --- BUILD DEBUG (Untuk CI) ---
     - name: Build Debug APK
       run: ./gradlew assembleDebug
 
-    # Menyimpan file APK agar bisa didownload di tab Actions
-    - name: Upload APK Artifact
+    - name: Upload Debug APK Artifact
       uses: actions/upload-artifact@v4
       with:
         name: MyPocketModels-Debug-APK
-        path: app/build/outputs/apk/debug/app-debug.apk
+        path: app/build/outputs/apk/debug/*.apk
+
+    # --- PROSES RELEASE (Hanya berjalan jika ada Push TAG v*) ---
+    - name: Prepare Mymodels Keystore
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/Mymodels.jks
+
+    - name: Build Signed Release APK
+      if: startsWith(github.ref, 'refs/tags/')
+      run: ./gradlew assembleRelease
+      env:
+        SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+        SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+        SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+
+    - name: Publish Mymodels Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        name: "Mymodels Release ${{ github.ref_name }}"
+        tag_name: ${{ github.ref }}
+        body: |
+          Otomatis dirilis oleh Mymodels CI/CD.
+          - Version: ${{ github.ref_name }}
+          - Status: Signed & Optimized
+        files: |
+          app/build/outputs/apk/release/*.apk
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

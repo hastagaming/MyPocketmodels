@@ -1,6 +1,7 @@
 package com.hastagaming.mypocketmodels
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -21,11 +22,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+// Pastikan package data ini sesuai dengan lokasi MessageEntity kamu
 import com.hastagaming.mypocketmodels.data.MessageEntity
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Log sederhana untuk memastikan token terminjeksi dengan benar (Cek di Logcat)
+        val tokenStatus = if (BuildConfig.HF_TOKEN.isNotEmpty()) "Terdeteksi" else "Kosong"
+        Log.d("Mymodels_Debug", "HF_TOKEN Status: $tokenStatus")
+
         setContent {
             MaterialTheme {
                 Surface(
@@ -41,7 +48,6 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainNavigation() {
-    // State untuk perpindahan halaman (Chat <-> About)
     var showAboutPage by remember { mutableStateOf(false) }
 
     if (showAboutPage) {
@@ -58,7 +64,6 @@ fun ChatScreen(onInfoClick: () -> Unit) {
     val messages = remember { mutableStateListOf<MessageEntity>() }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // --- 1. Top Bar ---
         TopAppBar(
             title = { Text("MyPocketModels", fontWeight = FontWeight.Bold) },
             actions = {
@@ -73,7 +78,6 @@ fun ChatScreen(onInfoClick: () -> Unit) {
             )
         )
 
-        // --- 2. Area Chat (Kosong di Awal) ---
         LazyColumn(
             modifier = Modifier
                 .weight(1f)
@@ -86,7 +90,6 @@ fun ChatScreen(onInfoClick: () -> Unit) {
             }
         }
 
-        // --- 3. Input Bar (Gaya Modern) ---
         Surface(shadowElevation = 8.dp, color = MaterialTheme.colorScheme.surface) {
             Row(
                 modifier = Modifier
@@ -105,16 +108,26 @@ fun ChatScreen(onInfoClick: () -> Unit) {
                         unfocusedIndicatorColor = Color.Transparent
                     )
                 )
-                
+
                 Spacer(modifier = Modifier.width(8.dp))
 
                 FloatingActionButton(
                     onClick = {
                         if (textFieldValue.isNotBlank()) {
-                            messages.add(MessageEntity(sender = "user", text = textFieldValue))
-                            // Simulasi respon AI sementara (nanti hubungkan ke Ollama)
-                            messages.add(MessageEntity(sender = "ai", text = "Sedang memproses..."))
+                            val userText = textFieldValue
+                            messages.add(MessageEntity(sender = "user", text = userText))
                             textFieldValue = ""
+
+                            // --- LOGIKA PENGGUNAAN TOKEN ---
+                            // Di sini nanti kamu panggil OllamaClient.kt
+                            // Contoh penggunaan token secara pasif:
+                            val responseText = if (BuildConfig.HF_TOKEN.isNotEmpty()) {
+                                "Sedang memproses via Hugging Face..."
+                            } else {
+                                "Token belum terpasang. Gunakan mode lokal saja."
+                            }
+                            
+                            messages.add(MessageEntity(sender = "ai", text = responseText))
                         }
                     },
                     containerColor = Color(0xFF007AFF),
@@ -141,9 +154,9 @@ fun ChatBubble(message: MessageEntity) {
         Surface(
             color = if (isUser) Color(0xFF007AFF) else Color(0xFFF0F0F0),
             shape = RoundedCornerShape(
-                topStart = 16.dp, 
-                topEnd = 16.dp, 
-                bottomStart = if (isUser) 16.dp else 0.dp, 
+                topStart = 16.dp,
+                topEnd = 16.dp,
+                bottomStart = if (isUser) 16.dp else 0.dp,
                 bottomEnd = if (isUser) 0.dp else 16.dp
             )
         ) {
@@ -166,7 +179,6 @@ fun AboutScreen(onBack: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Mengambil logo dari drawable yang kita buat sebelumnya
         Image(
             painter = painterResource(id = R.drawable.ic_app_logo),
             contentDescription = "Logo",
